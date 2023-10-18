@@ -27,6 +27,16 @@ namespace EFDataAccessLibrary.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Bookings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Guests_GuestId",
+                        column: c => c.GuestId,
+                        principalTable: "Guests",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Bookings_Rooms_RoomId",
+                        column: c => c.RoomId,
+                        principalTable: "Rooms",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -56,6 +66,11 @@ namespace EFDataAccessLibrary.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rooms", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Rooms_RoomTypes_RoomTypeId",
+                        column: c => c.RoomTypeId,
+                        principalTable: "RoomTypes",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
