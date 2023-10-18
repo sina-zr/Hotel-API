@@ -1,4 +1,6 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using EFDataAccessLibrary.DataAccess;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 namespace HotelAPI.StartupConfig;
@@ -75,6 +77,20 @@ public static class ServicesExtensions
 
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             opts.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFile));
+        });
+    }
+
+    /// <summary>
+    /// Adding our DbContext to Dependency Injection system
+    /// And Configuring it to use SqlServer
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="config"></param>
+    public static void AddEfDbContext(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddDbContext<HotelContext>(opts =>
+        {
+            opts.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
         });
     }
 }
