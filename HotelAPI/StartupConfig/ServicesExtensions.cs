@@ -1,4 +1,5 @@
 ﻿using EFDataAccessLibrary.DataAccess;
+using HotelAPI.Controllers.v1.BookingServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -101,5 +102,8 @@ public static class ServicesExtensions
     public static void AddDependencyInjections(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<IHotelContext, HotelContext>();
+        builder.Services.AddTransient<IRoomService, RoomService>();
+        builder.Services.AddTransient<IGuestService, GuestService>();
+        builder.Services.AddTransient<IBookingService, BookingService>();
     }
 }
