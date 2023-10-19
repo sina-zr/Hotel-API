@@ -85,12 +85,21 @@ public static class ServicesExtensions
     /// And Configuring it to use SqlServer
     /// </summary>
     /// <param name="builder"></param>
-    /// <param name="config"></param>
     public static void AddEfDbContext(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<HotelContext>(opts =>
         {
             opts.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
         });
+    }
+
+    /// <summary>
+    /// This methods adds Instances Adhering DI
+    /// You can add your own Instances too.
+    /// </summary>
+    /// <param name="builder"></param>
+    public static void AddDependencyInjections(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IHotelContext, HotelContext>();
     }
 }

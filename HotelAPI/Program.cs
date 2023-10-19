@@ -2,6 +2,7 @@ using HotelAPI.StartupConfig;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddDependencyInjections();
 builder.AddEfDbContext();
 builder.AddVersioning();
 builder.AddStandardServices();
