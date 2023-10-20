@@ -1,5 +1,7 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using HotelAPI.Controllers.v1.BookingServices;
+using HotelAPI.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -105,5 +107,10 @@ public static class ServicesExtensions
         builder.Services.AddTransient<IRoomService, RoomService>();
         builder.Services.AddTransient<IGuestService, GuestService>();
         builder.Services.AddTransient<IBookingService, BookingService>();
+
+        // Adding Dependency for Microsoft Identity
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<HotelContext>()
+            .AddDefaultTokenProviders();
     }
 }
