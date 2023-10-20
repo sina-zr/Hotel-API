@@ -81,6 +81,9 @@ public class AuthenticationController : ControllerBase
         else
         {
             // If user creation fails, handle the errors, and potentially delete the Guest record created earlier.
+            _db.Guests.Remove(newGuest);
+            await _db.SaveChangesAsync();
+
             // You can check result.Errors for more details on the errors.
             return BadRequest("User registration failed.");
         }
