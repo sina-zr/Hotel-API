@@ -1,6 +1,7 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using HotelAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ namespace HotelAPI.Controllers.v2;
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiController]
 [ApiVersion("2.0")]
+[AllowAnonymous]
 public class AuthenticationController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -145,7 +147,7 @@ public class AuthenticationController : ControllerBase
             _config.GetValue<string>("Authentication:Audience"),
             claims,
             DateTime.Now,
-            DateTime.Now.AddMinutes(1),
+            DateTime.Now.AddMinutes(5),
             signingCredentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

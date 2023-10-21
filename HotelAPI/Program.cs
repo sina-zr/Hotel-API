@@ -6,6 +6,7 @@ builder.AddDependencyInjections();
 builder.AddEfDbContext();
 builder.AddVersioning();
 builder.AddStandardServices();
+builder.AddAuthentication();
 
 var app = builder.Build();
 
