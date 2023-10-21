@@ -1,10 +1,13 @@
 ﻿using EFDataAccessLibrary.DataAccess;
-using HotelAPI.Controllers.v1.BookingServices;
+using HotelAPI.Controllers.v2.BookingServices;
 using HotelAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text;
 
 namespace HotelAPI.StartupConfig;
 
@@ -14,7 +17,7 @@ public static class ServicesExtensions
     /// Adding versioning to API Controllers
     /// </summary>
     /// <param name="builder"></param>
-    public static void AddVersioning(this WebApplicationBuilder builder)
+    internal static void AddVersioning(this WebApplicationBuilder builder)
     {
         builder.Services.AddVersionedApiExplorer(opts =>
         {
@@ -34,7 +37,7 @@ public static class ServicesExtensions
     /// Add Controllers, EndpointsApiExplorer, SwaggerServices
     /// </summary>
     /// <param name="builder"></param>
-    public static void AddStandardServices(this WebApplicationBuilder builder)
+    internal static void AddStandardServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
@@ -42,6 +45,31 @@ public static class ServicesExtensions
     }
     private static void AddSwaggerServices(this WebApplicationBuilder builder)
     {
+        var securityScheme = new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Description = "JWT Authorization header info using bearer tokens",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        };
+
+        var securityRequirement = new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "bearerAuth"
+                        }
+                    },
+                    new string[] {}
+                }
+            };
+
         builder.Services.AddSwaggerGen(opts =>
         {
             var title = "HOTEL APP Demo";
@@ -80,6 +108,9 @@ public static class ServicesExtensions
 
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             opts.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFile));
+
+            opts.AddSecurityDefinition("bearerAuth", securityScheme);
+            opts.AddSecurityRequirement(securityRequirement);
         });
     }
 
@@ -88,7 +119,7 @@ public static class ServicesExtensions
     /// And Configuring it to use SqlServer
     /// </summary>
     /// <param name="builder"></param>
-    public static void AddEfDbContext(this WebApplicationBuilder builder)
+    internal static void AddEfDbContext(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<HotelContext>(opts =>
         {
@@ -101,7 +132,7 @@ public static class ServicesExtensions
     /// You can add your own Instances too.
     /// </summary>
     /// <param name="builder"></param>
-    public static void AddDependencyInjections(this WebApplicationBuilder builder)
+    internal static void AddDependencyInjections(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<IHotelContext, HotelContext>();
         builder.Services.AddTransient<IRoomService, RoomService>();
@@ -112,5 +143,33 @@ public static class ServicesExtensions
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<HotelContext>()
             .AddDefaultTokenProviders();
+    }
+
+    internal static void AddAuthentication(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddAuthentication("Bearer")
+            .AddJwtBearer(opts =>
+            {
+                opts.TokenValidationParameters = new()
+                {
+                    // First we tell what we want to check if is valid
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+
+                    // Then we give it the already valid thing for comparing to user's token
+                    ValidIssuer = builder.Configuration.GetValue<string>("Authentication:Issuer"),
+                    ValidAudience = builder.Configuration.GetValue<string>("Authentication:Audience"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                        builder.Configuration.GetValue<string>("Authentication:SecretKey")))
+                };
+            });
+
+        builder.Services.AddAuthorization(opts =>
+        {
+            opts.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+        });
     }
 }
