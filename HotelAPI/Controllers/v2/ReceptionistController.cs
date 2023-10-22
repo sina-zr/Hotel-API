@@ -12,6 +12,7 @@ namespace HotelAPI.Controllers.v2
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [ApiVersion("2.0")]
+    [Authorize]
     public class ReceptionistController : ControllerBase
     {
         private readonly IHotelContext _db;
@@ -30,7 +31,6 @@ namespace HotelAPI.Controllers.v2
         /// <returns>Returns Bookings of user where its CheckIn date has arrived
         /// And CheckOut date hasn't arrived yet.</returns>
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> SearchBookings(string firstName, string lastName)
         {
             try
@@ -62,7 +62,6 @@ namespace HotelAPI.Controllers.v2
         /// <param name="reservationId"></param>
         /// <returns> IActionResult </returns>
         [HttpPut]
-        [Authorize]
         public async Task<IActionResult> CheckInAReservation(int reservationId)
         {
             try

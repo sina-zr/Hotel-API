@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFDataAccessLibrary", "EFDataAccessLibrary\EFDataAccessLibrary.csproj", "{ABBBD07C-0A75-45BB-9034-8E75AE1AC933}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidationLibrary", "ValidationLibrary\ValidationLibrary.csproj", "{E5E4DB96-40AD-408F-BEF5-B089CC6FC0FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedModels", "SharedModels\SharedModels.csproj", "{DE7E0B55-D616-41F2-9F1C-5808C0256B8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{ABBBD07C-0A75-45BB-9034-8E75AE1AC933}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABBBD07C-0A75-45BB-9034-8E75AE1AC933}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABBBD07C-0A75-45BB-9034-8E75AE1AC933}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5E4DB96-40AD-408F-BEF5-B089CC6FC0FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5E4DB96-40AD-408F-BEF5-B089CC6FC0FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5E4DB96-40AD-408F-BEF5-B089CC6FC0FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5E4DB96-40AD-408F-BEF5-B089CC6FC0FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE7E0B55-D616-41F2-9F1C-5808C0256B8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE7E0B55-D616-41F2-9F1C-5808C0256B8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE7E0B55-D616-41F2-9F1C-5808C0256B8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE7E0B55-D616-41F2-9F1C-5808C0256B8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

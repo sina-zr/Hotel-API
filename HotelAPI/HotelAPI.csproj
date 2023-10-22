@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EFDataAccessLibrary\EFDataAccessLibrary.csproj" />
+    <ProjectReference Include="..\SharedModels\SharedModels.csproj" />
+    <ProjectReference Include="..\ValidationLibrary\ValidationLibrary.csproj" />
   </ItemGroup>
 
 </Project>

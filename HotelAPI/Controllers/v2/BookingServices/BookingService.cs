@@ -1,51 +1,71 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
+using SharedModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using ValidationLibrary;
 
 namespace HotelAPI.Controllers.v2.BookingServices
 {
     public class BookingService : IBookingService
     {
         private readonly IRoomService _roomService;
-        private readonly IGuestService _guestService;
         private readonly IHotelContext _db;
 
-        public BookingService(IRoomService roomService, IGuestService guestService, IHotelContext db)
+        public BookingService(IRoomService roomService, IHotelContext db)
         {
             _roomService = roomService;
-            _guestService = guestService;
             _db = db;
         }
 
-        public async Task<IActionResult> BookARoom(int guestId,string email, DateTime startDate, DateTime endDate, int roomTypeId)
+        public async Task<IActionResult> BookARoom(int guestId, BookingBodyModel bookingBody)
         {
-            try
+            // Validating our parameters
+            BookARoomBodyValidator validator = new BookARoomBodyValidator();
+            var validationResult = validator.Validate(bookingBody);
+
+            if (validationResult.IsValid)
             {
-                var availableRooms = await _roomService.GetAvailableRoomsAsync(roomTypeId, startDate, endDate);
-
-                if (availableRooms.Any())
+                try
                 {
-                    var roomId = availableRooms.First().Id;
-                    var totalCost = _roomService.CalculateTotalCost(roomTypeId, startDate, endDate);
+                    var availableRooms = await _roomService.GetAvailableRoomsAsync(bookingBody.RoomTypeId,
+                                                                                   bookingBody.StartDate,
+                                                                                   bookingBody.EndDate);
 
-                    var booking = CreateBooking(roomId, guestId, startDate, endDate, totalCost);
+                    if (availableRooms.Any())
+                    {
+                        var roomId = availableRooms.First().Id;
+                        var totalCost = _roomService.CalculateTotalCost(bookingBody.RoomTypeId,
+                                                                        bookingBody.StartDate,
+                                                                        bookingBody.EndDate);
 
-                    await _db.Bookings.AddAsync(booking);
-                    await _db.SaveChangesAsync();
+                        var booking = CreateBooking(roomId,
+                                                    guestId,
+                                                    bookingBody.StartDate,
+                                                    bookingBody.EndDate,
+                                                    totalCost);
 
-                    return new OkResult();
+                        await _db.Bookings.AddAsync(booking);
+                        await _db.SaveChangesAsync();
+
+                        return new OkResult();
+                    }
+                    else
+                    {
+                        return new StatusCodeResult(400);
+                    }
                 }
-                else
+                catch (Exception)
                 {
-                    return new StatusCodeResult(400);
+                    return new StatusCodeResult(500);
                 }
             }
-            catch (Exception)
+            else
             {
-                return new StatusCodeResult(500);
+                return new StatusCodeResult(400);
             }
+
         }
 
         private Booking CreateBooking(int roomId, int guestId, DateTime startDate, DateTime endDate, decimal totalCost)
