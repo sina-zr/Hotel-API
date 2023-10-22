@@ -1,6 +1,7 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using HotelAPI.Controllers.v2.BookingServices;
 using HotelAPI.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -119,12 +120,17 @@ public static class ServicesExtensions
     /// And Configuring it to use SqlServer
     /// </summary>
     /// <param name="builder"></param>
-    internal static void AddEfDbContext(this WebApplicationBuilder builder)
+    internal static void AddEFCore(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<HotelContext>(opts =>
         {
             opts.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
         });
+        
+        // Adding Dependency for Microsoft Identity
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<HotelContext>()
+            .AddDefaultTokenProviders();
     }
 
     /// <summary>
@@ -138,16 +144,15 @@ public static class ServicesExtensions
         builder.Services.AddTransient<IRoomService, RoomService>();
         builder.Services.AddTransient<IGuestService, GuestService>();
         builder.Services.AddTransient<IBookingService, BookingService>();
-
-        // Adding Dependency for Microsoft Identity
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-            .AddEntityFrameworkStores<HotelContext>()
-            .AddDefaultTokenProviders();
     }
 
     internal static void AddAuthentication(this WebApplicationBuilder builder)
     {
-        builder.Services.AddAuthentication("Bearer")
+        builder.Services.AddAuthentication(auth =>
+        {
+            auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(opts =>
             {
                 opts.TokenValidationParameters = new()
@@ -156,6 +161,7 @@ public static class ServicesExtensions
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateIssuerSigningKey = true,
+                    RequireExpirationTime = true,
 
                     // Then we give it the already valid thing for comparing to user's token
                     ValidIssuer = builder.Configuration.GetValue<string>("Authentication:Issuer"),
@@ -165,11 +171,11 @@ public static class ServicesExtensions
                 };
             });
 
-        builder.Services.AddAuthorization(opts =>
-        {
-            opts.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser()
-            .Build();
-        });
+        //builder.Services.AddAuthorization(opts =>
+        //{
+        //    opts.FallbackPolicy = new AuthorizationPolicyBuilder()
+        //    .RequireAuthenticatedUser()
+        //    .Build();
+        //});
     }
 }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace HotelAPI.Controllers.v2
 {
@@ -28,10 +30,12 @@ namespace HotelAPI.Controllers.v2
         /// <returns>Returns Bookings of user where its CheckIn date has arrived
         /// And CheckOut date hasn't arrived yet.</returns>
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> SearchBookings(string firstName, string lastName)
         {
             try
             {
+                var key = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
                 var guest = await _db.Guests.Where(g => g.FirstName == firstName && g.LastName == lastName).FirstOrDefaultAsync();
                 if (guest == null)
                 {
@@ -58,6 +62,7 @@ namespace HotelAPI.Controllers.v2
         /// <param name="reservationId"></param>
         /// <returns> IActionResult </returns>
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> CheckInAReservation(int reservationId)
         {
             try

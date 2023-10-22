@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using HotelAPI.Controllers.v2.BookingServices;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace HotelAPI.Controllers.v2;
 
@@ -36,7 +37,7 @@ public class BookRoomController : ControllerBase
     [Authorize]
     public async Task<IActionResult> BookARoom(string email, DateTime startDate, DateTime endDate, int roomTypeId)
     {
-        int guestId = int.Parse(User.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
+        int guestId = int.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
 
         var result = await _bookingService.BookARoom(guestId, email, startDate, endDate, roomTypeId);
 
