@@ -1,5 +1,6 @@
 ﻿using EFDataAccessLibrary.DataAccess;
 using EFDataAccessLibrary.Models;
+using FluentValidation.Results;
 using HotelAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,9 +8,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SharedModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using ValidationLibrary;
 
 namespace HotelAPI.Controllers.v2;
 
@@ -41,54 +44,83 @@ public class AuthenticationController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegistrationViewModel model)
     {
-        // Check if the username is already used.
-        var existingUser = await _userManager.FindByNameAsync(model.Username);
-        if (existingUser != null)
+        model.FirstName = model.FirstName.ToLower();
+        model.LastName = model.LastName.ToLower();
+
+        // Validate model
+        RegisterValidation validator = new RegisterValidation();
+        ValidationResult validationResult = validator.Validate(model);
+
+        if (validationResult.IsValid)
         {
-            return BadRequest("Username is already in use.");
-        }
+            try
+            {
+                // Check if the username is already used.
+                var existingUser = await _userManager.FindByNameAsync(model.Username);
+                if (existingUser != null)
+                {
+                    return BadRequest("Username is already in use.");
+                }
 
-        // Create a new Guest record with Firstname, LastName, and Email.
-        var newGuest = new Guest
-        {
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            EmailAddress = model.EmailAddress
-        };
+                // Create a new Guest record with Firstname, LastName, and Email.
+                var newGuest = new Guest
+                {
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    EmailAddress = model.EmailAddress
+                };
 
-        // Add the Guest record to your database context and save changes.
-        _db.Guests.Add(newGuest);
-        await _db.SaveChangesAsync();
+                // Add the Guest record to your database context and save changes.
+                _db.Guests.Add(newGuest);
+                await _db.SaveChangesAsync();
 
-        // Fetch the auto-generated GuestId for the newly created Guest record.
-        int guestId = newGuest.Id;
+                // Fetch the auto-generated GuestId for the newly created Guest record.
+                int guestId = newGuest.Id;
 
-        // Create a new ApplicationUser using the provided model.
-        var newUser = new ApplicationUser
-        {
-            UserName = model.Username,
-            guestId = guestId
-        };
+                // Create a new ApplicationUser using the provided model.
+                var newUser = new ApplicationUser
+                {
+                    UserName = model.Username,
+                    guestId = guestId
+                };
 
-        // Use UserManager to create the new user.
-        var result = await _userManager.CreateAsync(newUser, model.PasswordHash);
+                // Use UserManager to create the new user.
+                var result = await _userManager.CreateAsync(newUser, model.PasswordHash);
 
-        if (result.Succeeded)
-        {
-            // User registration is successful, generate a JWT token.
-            var userData = new UserDataModel { firstName = model.FirstName, lastName = model.LastName, guestId = guestId };
-            var token = GenerateJwtToken(userData);
-            return Ok(token);
+                if (result.Succeeded)
+                {
+                    // User registration is successful, generate a JWT token.
+                    var userData = new UserDataModel { firstName = model.FirstName, lastName = model.LastName, guestId = guestId };
+                    var token = GenerateJwtToken(userData);
+                    return Ok(token);
+                }
+                else
+                {
+                    // If user creation fails, handle the errors, and potentially delete the Guest record created earlier.
+                    _db.Guests.Remove(newGuest);
+                    await _db.SaveChangesAsync();
+
+                    // You can check result.Errors for more details on the errors.
+                    return BadRequest("User registration failed.");
+                }
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Something went wrong!");
+            }
         }
         else
         {
-            // If user creation fails, handle the errors, and potentially delete the Guest record created earlier.
-            _db.Guests.Remove(newGuest);
-            await _db.SaveChangesAsync();
+            // Validation failed. Build an error response.
+            var errorResponse = new
+            {
+                Message = "Validation failed",
+                Errors = validationResult.Errors.Select(error => error.ErrorMessage)
+            };
 
-            // You can check result.Errors for more details on the errors.
-            return BadRequest("User registration failed.");
+            return BadRequest(errorResponse);
         }
+
     }
 
     /// <summary>
