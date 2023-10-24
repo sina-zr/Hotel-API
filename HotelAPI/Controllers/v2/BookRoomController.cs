@@ -37,16 +37,28 @@ public class BookRoomController : ControllerBase
 
         var result = await _bookingService.BookARoom(guestId, bookingBody);
 
-        string message = result switch
+        // Attempt to extract the message from the result (if it's an ObjectResult)
+        string message = "";
+        if (result is ObjectResult objectResult)
         {
-            OkResult => "Room booked successfully.",
-            StatusCodeResult statusCodeResult when statusCodeResult.StatusCode == 400 => "Bad Request or No available rooms for the specified dates.",
-            StatusCodeResult statusCodeResult when statusCodeResult.StatusCode == 500 => "An error occurred while processing your request.",
-            _ => "An unknown error occurred."
-        };
+            var responseObj = objectResult.Value as dynamic;
+            message = responseObj!.Message;
+        }
 
-        return result is ObjectResult objectResult
-            ? new ObjectResult(new { Message = message }) { StatusCode = objectResult.StatusCode }
-            : new ObjectResult(new { Message = message });
+        // If the message is not found, generate a default message
+        if (string.IsNullOrEmpty(message))
+        {
+            message = result switch
+            {
+                OkResult => "Room booked successfully.",
+                StatusCodeResult statusCodeResult when statusCodeResult.StatusCode == 400 => "Bad Request or No available rooms for the specified dates.",
+                StatusCodeResult statusCodeResult when statusCodeResult.StatusCode == 500 => "An error occurred while processing your request.",
+                _ => "An unknown error occurred."
+            };
+        }
+
+        return result is ObjectResult
+            ? new ObjectResult(message) { StatusCode = (result as ObjectResult).StatusCode }
+            : new ObjectResult(message);
     }
 }
