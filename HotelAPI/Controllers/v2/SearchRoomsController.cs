@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace HotelAPI.Controllers.v2
 {
@@ -31,13 +33,33 @@ namespace HotelAPI.Controllers.v2
         {
             try
             {
-                var availableRoomTypes = await _db.RoomTypes
-                    .Where(room =>
-                        !_db.Bookings.Any(booking =>
-                            booking.RoomId == room.Id &&
-                            startDate < booking.EndDate &&
-                            endDate > booking.StartDate))
-                    .ToListAsync();
+                var parameters = new[]
+                {
+                    new SqlParameter("@startDate", SqlDbType.Date) { Value = startDate },
+                    new SqlParameter("@endDate", SqlDbType.Date) { Value = endDate }
+                };
+
+                //var availableRoomTypes = _db.RoomTypes
+                //    .FromSqlRaw("dbo.spRoomTypes_GetAvailableRoomTypes @startDate, @endDate",
+                //                                                  parameters).ToList();
+
+
+                var bookedRoomIds = _db.Bookings
+                    .Where(b =>
+                        (startDate < b.StartDate && endDate >= b.EndDate) ||
+                        (b.StartDate < endDate && endDate < b.EndDate) ||
+                        (b.StartDate <= startDate && startDate < b.EndDate))
+                    .Select(b => b.RoomId)
+                    .Distinct();
+
+                var availableRooms = _db.Rooms
+                    .Where(r => !bookedRoomIds.Contains(r.Id))
+                    .Select(r => r.RoomTypeId)
+                    .ToList();
+
+                var availableRoomTypes = _db.RoomTypes
+                    .Where(t => availableRooms.Contains(t.Id))
+                    .ToList();
 
                 return Ok(availableRoomTypes);
             }
