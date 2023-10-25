@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.ServiceProcess;
 using System.Text;
 
 namespace HotelAPI.StartupConfig;
@@ -183,6 +185,24 @@ public static class ServicesExtensions
     {
         builder.Services.AddHealthChecks()
             .AddSqlServer(builder.Configuration.GetConnectionString("Default")!);
+
+        var startDate = DateTime.Now;
+        var endDate = startDate.AddDays(1);
+        builder.Services.AddHealthChecks()
+            .AddUrlGroup(new Uri(
+                $"https://localhost:7127/api/v2/SearchRooms?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}"),
+                "API Health Check");
+
+        builder.Services.AddHealthChecks()
+            //check disk storage 1024 MB (1 GB) free minimum
+            .AddDiskStorageHealthCheck(s => s.AddDrive("C:\\", 1024))
+            //check 512 MB max allocated memory if exceeds
+            .AddProcessAllocatedMemoryHealthCheck(512)
+            //check if process is running
+            .AddProcessHealthCheck("System", p => p.Length > 0)
+            //check if windows service is running
+            .AddWindowsServiceHealthCheck("MSSQLSERVER", s => s.Status == ServiceControllerStatus.Running);
+
 
         builder.Services.AddHealthChecksUI(opts =>
         {
