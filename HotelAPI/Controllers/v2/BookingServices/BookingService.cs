@@ -12,11 +12,13 @@ public class BookingService : IBookingService
 {
     private readonly IRoomService _roomService;
     private readonly IHotelContext _db;
+    private readonly ILogger<BookingService> _logger;
 
-    public BookingService(IRoomService roomService, IHotelContext db)
+    public BookingService(IRoomService roomService, IHotelContext db, ILogger<BookingService> logger)
     {
         _roomService = roomService;
         _db = db;
+        _logger = logger;
     }
 
     public async Task<IActionResult> BookARoom(int guestId, BookingBodyModel bookingBody)
@@ -59,8 +61,10 @@ public class BookingService : IBookingService
                     };
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occuerred while processing a request: {ErrorMessage}", ex.Message);
+
                 return new ObjectResult("An error occurred while processing your request.")
                 {
                     StatusCode = 500
@@ -86,6 +90,23 @@ public class BookingService : IBookingService
 
     private Booking CreateBooking(int roomId, int guestId, DateTime startDate, DateTime endDate, decimal totalCost)
     {
-        return new Booking { RoomId = roomId, GuestId = guestId, StartDate = startDate, EndDate = endDate, CheckedIn = false, TotalCost = totalCost };
+        try
+        {
+            return new Booking
+            {
+                RoomId = roomId,
+                GuestId = guestId,
+                StartDate = startDate,
+                EndDate = endDate,
+                CheckedIn = false,
+                TotalCost = totalCost
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occuerred while processing a request: {ErrorMessage}", ex.Message);
+
+            return null;
+        }
     }
 }

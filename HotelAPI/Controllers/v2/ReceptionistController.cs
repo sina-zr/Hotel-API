@@ -16,10 +16,12 @@ namespace HotelAPI.Controllers.v2
     public class ReceptionistController : ControllerBase
     {
         private readonly IHotelContext _db;
+        private readonly ILogger<ReceptionistController> _logger;
 
-        public ReceptionistController(IHotelContext db)
+        public ReceptionistController(IHotelContext db, ILogger<ReceptionistController> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         /// <summary>
@@ -49,8 +51,11 @@ namespace HotelAPI.Controllers.v2
 
                 return Ok(bookings);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occuerred while processing a request: {ErrorMessage}", ex.Message);
+
+
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
@@ -78,8 +83,10 @@ namespace HotelAPI.Controllers.v2
 
                 return Ok("Successfully checkedIn Reservation");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occuerred while processing a request: {ErrorMessage}", ex.Message);
+
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }

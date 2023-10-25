@@ -16,6 +16,23 @@ builder.Services.AddWatchDogServices();
 
 var app = builder.Build();
 
+//var logger = app.Services.GetService<ILogger<Program>>();
+
+//// Subscribe to the ProcessExit event for graceful shutdown
+//AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+//{
+//    logger?.LogCritical("Applilcation is stopping.");
+//};
+//// Subscribe to the UnhandledException event for unhandled exception
+//AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+//{
+//    if (e.ExceptionObject is Exception ex)
+//    {
+//        logger?.LogError(ex, "An Unhandled exception occurred: {ErrorMessage}", ex.Message);
+//    }
+//};
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -36,5 +53,7 @@ app.MapControllers();
 app.UseCustomedWatchDog();
 
 app.UseHealtChecks();
+
+//logger?.LogCritical("Application Started.");
 
 app.Run();
