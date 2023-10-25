@@ -1,4 +1,6 @@
+using HealthChecks.UI.Client;
 using HotelAPI.StartupConfig;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,8 @@ builder.AddEFCore();
 builder.AddAuthentication();
 builder.AddVersioning();
 builder.AddStandardServices();
+builder.AddCustomHealthChecks();
+
 
 var app = builder.Build();
 
@@ -26,5 +30,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+}).AllowAnonymous();
+app.MapHealthChecksUI();
 
 app.Run();
