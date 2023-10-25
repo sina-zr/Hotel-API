@@ -41,8 +41,7 @@ public class BookRoomController : ControllerBase
         string message = "";
         if (result is ObjectResult objectResult)
         {
-            var responseObj = objectResult.Value as dynamic;
-            message = responseObj!.Message;
+            message = objectResult.Value.ToString();
         }
 
         // If the message is not found, generate a default message
