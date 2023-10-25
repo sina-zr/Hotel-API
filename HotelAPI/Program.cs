@@ -1,6 +1,7 @@
 using HealthChecks.UI.Client;
 using HotelAPI.StartupConfig;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using WatchDog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.AddVersioning();
 builder.AddStandardServices();
 builder.AddCustomHealthChecks();
 
+builder.Services.AddWatchDogServices();
 
 var app = builder.Build();
 
@@ -31,10 +33,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-}).AllowAnonymous();
-app.MapHealthChecksUI();
+app.UseCustomedWatchDog();
+
+app.UseHealtChecks();
 
 app.Run();

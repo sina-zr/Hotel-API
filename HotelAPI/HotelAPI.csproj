@@ -27,6 +27,7 @@
 	<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.0.2" />
 	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.2" />
+	<PackageReference Include="WatchDog.NET" Version="1.4.10" />
   </ItemGroup>
 
   <ItemGroup>

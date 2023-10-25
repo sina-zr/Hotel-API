@@ -14,7 +14,7 @@ using System.Text;
 
 namespace HotelAPI.StartupConfig;
 
-public static class ServicesExtensions
+internal static class BuilderServicesExtensions
 {
     /// <summary>
     /// Adding versioning to API Controllers
