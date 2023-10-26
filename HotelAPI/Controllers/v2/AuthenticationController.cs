@@ -147,7 +147,8 @@ public class AuthenticationController : ControllerBase
                 {
                     firstName = guest.FirstName,
                     lastName = guest.LastName,
-                    guestId = guest.Id
+                    guestId = guest.Id,
+                    Role = GetUserHighestRole(user)
                 };
 
                 // Generate a JWT token with the user data.
@@ -173,6 +174,7 @@ public class AuthenticationController : ControllerBase
         claims.Add(new(JwtRegisteredClaimNames.Sub, data.guestId.ToString()));
         claims.Add(new(JwtRegisteredClaimNames.GivenName, data.firstName.ToString()));
         claims.Add(new(JwtRegisteredClaimNames.FamilyName, data.lastName.ToString()));
+        claims.Add(new(ClaimTypes.Role, data.Role.ToString()));
 
         var token = new JwtSecurityToken(
             _config.GetValue<string>("Authentication:Issuer"),
@@ -183,5 +185,23 @@ public class AuthenticationController : ControllerBase
             signingCredentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private string GetUserHighestRole(ApplicationUser user)
+    {
+        var roles = _userManager.GetRolesAsync(user);
+
+        if (roles.Result.Contains("Manager"))
+        {
+            return "Manager";
+        }
+        else if (roles.Result.Contains("Receptionist"))
+        {
+            return "Receptionist";
+        }
+        else
+        {
+            return "Guest";
+        }
     }
 }

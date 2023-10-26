@@ -12,7 +12,7 @@ namespace HotelAPI.Controllers.v2
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     [ApiVersion("2.0")]
-    [Authorize]
+    [Authorize(Roles = "Manager,Receptionist")]
     public class ReceptionistController : ControllerBase
     {
         private readonly IHotelContext _db;

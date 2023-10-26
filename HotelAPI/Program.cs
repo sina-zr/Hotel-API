@@ -56,4 +56,7 @@ app.UseHealtChecks();
 
 //logger?.LogCritical("Application Started.");
 
+app.CreatRoles();
+//app.AddManagerRole();
+
 app.Run();

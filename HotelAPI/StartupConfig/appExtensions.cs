@@ -1,5 +1,7 @@
 ﻿using HealthChecks.UI.Client;
+using HotelAPI.Models;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
 using WatchDog;
 
 namespace HotelAPI.StartupConfig
@@ -28,6 +30,65 @@ namespace HotelAPI.StartupConfig
                 ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
             }).AllowAnonymous();
             app.MapHealthChecksUI();
+        }
+
+        internal static async void CreatRoles(this WebApplication app)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider
+                    .GetRequiredService<RoleManager<IdentityRole>>();
+
+                var roles = new[] { "Manager", "Receptionist", "Guest" };
+
+                foreach (var role in roles)
+                {
+                    if (!await roleManager.RoleExistsAsync(role))
+                        await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
+        }
+
+        internal static async void AddManagerRole(this WebApplication app)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var userManager = scope.ServiceProvider
+                    .GetRequiredService<UserManager<ApplicationUser>>();
+
+                string username = "";
+                string password = "";
+
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                try
+                {
+                    var user = await userManager.FindByNameAsync(username);
+
+                    if (user != null && await userManager.CheckPasswordAsync(user, password))
+                    {
+                        if (userManager.GetRolesAsync(user).Result.Contains("Manager"))
+                        {
+                            logger.LogCritical("Manager {UserName} already exists", user.UserName);
+                            return;
+                        }
+
+                        await userManager.AddToRoleAsync(user, "Manager");                        
+
+                        logger.LogCritical("{UserName} is given Manager Role", user.UserName);
+                    }
+                    else
+                    {
+                        logger.LogCritical("Attempt to Add Manager." +
+                            "{username} is Null or Password is wrong.", username);
+                    }
+                }
+                catch (Exception)
+                {
+                    logger.LogCritical("Something went wrong." +
+                        "Failed to add Manager {username}.", username);
+                }
+            }
         }
     }
 }

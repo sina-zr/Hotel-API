@@ -5,5 +5,6 @@
         public string firstName { get; set; }
         public string lastName { get; set; }
         public int guestId { get; set; }
+        public string Role { get; set; }
     }
 }
