@@ -89,8 +89,16 @@ public class AuthenticationController : ControllerBase
 
                 if (result.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(newUser, "Guest");
+
                     // User registration is successful, generate a JWT token.
-                    var userData = new UserDataModel { firstName = model.FirstName, lastName = model.LastName, guestId = guestId };
+                    var userData = new UserDataModel
+                    {
+                        firstName = model.FirstName,
+                        lastName = model.LastName,
+                        guestId = guestId,
+                        Role = GetUserHighestRole(newUser)
+                    };
                     var token = GenerateJwtToken(userData);
                     return Ok(token);
                 }
