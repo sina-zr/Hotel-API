@@ -66,7 +66,7 @@ namespace HotelAPI.Controllers.v2
         /// </summary>
         /// <param name="reservationId"></param>
         /// <returns> IActionResult </returns>
-        [HttpPut]
+        [HttpPut("checkin")]
         public async Task<IActionResult> CheckInAReservation(int reservationId)
         {
             try
@@ -82,6 +82,36 @@ namespace HotelAPI.Controllers.v2
                 await _db.SaveChangesAsync();
 
                 return Ok("Successfully checkedIn Reservation");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occuerred while processing a request: {ErrorMessage}", ex.Message);
+
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
+        /// <summary>
+        /// Sets CheckedIn for A Booking as false.
+        /// </summary>
+        /// <param name="reservationId"></param>
+        /// <returns> IActionResult </returns>
+        [HttpPut("checkout")]
+        public async Task<IActionResult> CheckOutAReservation(int reservationId)
+        {
+            try
+            {
+                var reservation = await _db.Bookings.Where(b => b.Id == reservationId).FirstOrDefaultAsync();
+
+                if (reservation == null)
+                {
+                    return NotFound("Reservation was Not found!");
+                }
+
+                reservation.CheckedIn = false;
+                await _db.SaveChangesAsync();
+
+                return Ok("Successfully checkedOut Reservation");
             }
             catch (Exception ex)
             {
