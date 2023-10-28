@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using HealthChecks.UI.Client;
 using HotelAPI.StartupConfig;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -5,14 +6,16 @@ using WatchDog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddDependencyInjections();
+builder.Services.AddMemoryCache();
+
+builder.AddEfLibraryDependencies();
 builder.AddEFCore();
 builder.AddAuthentication();
 builder.AddVersioning();
 builder.AddStandardServices();
 builder.AddCustomHealthChecks();
-
 builder.Services.AddWatchDogServices();
+builder.AddRateLimiting();
 
 var app = builder.Build();
 
@@ -43,6 +46,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseIpRateLimiting();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -56,7 +61,7 @@ app.UseHealtChecks();
 
 //logger?.LogCritical("Application Started.");
 
-app.CreatRoles();
+//app.CreatRoles();
 //app.AddManagerRole();
 
 app.Run();

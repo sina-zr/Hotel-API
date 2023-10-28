@@ -15,6 +15,7 @@
 	<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="7.1.0" />
 	<PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="7.0.0" />
 	<PackageReference Include="AspNetCore.HealthChecks.Uris" Version="7.0.0" />
+	<PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
 	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.22" />
 	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.23" />
 	<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />

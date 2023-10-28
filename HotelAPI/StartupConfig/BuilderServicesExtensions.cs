@@ -1,4 +1,5 @@
-﻿using EFDataAccessLibrary.DataAccess;
+﻿using AspNetCoreRateLimit;
+using EFDataAccessLibrary.DataAccess;
 using HotelAPI.Controllers.v2.BookingServices;
 using HotelAPI.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -141,7 +142,7 @@ internal static class BuilderServicesExtensions
     /// You can add your own Instances too.
     /// </summary>
     /// <param name="builder"></param>
-    internal static void AddDependencyInjections(this WebApplicationBuilder builder)
+    internal static void AddEfLibraryDependencies(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<IHotelContext, HotelContext>();
         builder.Services.AddTransient<IRoomService, RoomService>();
@@ -211,5 +212,17 @@ internal static class BuilderServicesExtensions
             opts.SetEvaluationTimeInSeconds(60);
             opts.SetMinimumSecondsBetweenFailureNotifications(180);
         }).AddInMemoryStorage();
+    }
+
+    internal static void AddRateLimiting(this WebApplicationBuilder builder)
+    {
+        builder.Services.Configure<IpRateLimitOptions>(
+            builder.Configuration.GetSection("IpRateLimiting"));
+
+        builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+        builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+        builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+        builder.Services.AddInMemoryRateLimiting();
     }
 }
