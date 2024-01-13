@@ -65,3 +65,5 @@ app.UseHealtChecks();
 //app.AddManagerRole();
 
 app.Run();
+
+// Testing connection of github
